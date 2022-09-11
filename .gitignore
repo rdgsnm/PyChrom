@@ -1,2 +1,4 @@
 dist/
 PyChrom.egg-info/
+test_functions.py
+pychrom/__pycache__/
