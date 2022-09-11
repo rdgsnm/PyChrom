@@ -13,8 +13,15 @@ classifiers = [
 
 setup(
     name='PyChrom',
-    version=0.0.1,
+    version='0.0.1',
     description='Module to provide tools to process and analyse chromatographic data from different sources such as UPLC, LCMS, GCMS, etc.',
     long_description=open('README.txt').read() + '\n\n' + open('CHANGELOG.txt').read(),
-    url=''
+    url='https://github.com/rdgsnm/PyChrom',
+    author='Rodrigo Silva Nascimento Mancini',
+    author_email='rdgsnm@gmail.com',
+    license='MIT',
+    classifiers=classifiers,
+    keywords='',
+    packages=find_packages(),
+    install_requires=['numpy', 'scipy', 'sklearn']
 )
