@@ -6,7 +6,6 @@ classifiers = [
     'Operating System :: Microsoft :: Windows :: Windows 11',
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
-    'Private :: Do Not Upload',
     'Programming Language :: Python :: 3.10',
     'Topic :: Scientific/Engineering :: Chemistry'
 ]
