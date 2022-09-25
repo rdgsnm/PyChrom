@@ -1,3 +1,4 @@
+from email.mime import base
 import warnings
 import numpy as np
 import scipy.stats as stat
@@ -296,7 +297,42 @@ def mean_center(y_data: np.ndarray, axis = 0) -> np.ndarray:
 
     return y_centered
 
-def calculate_noise(y_data : np.ndarray) -> tuple((float, float)):
+def calculate_normalized_noise(y_data : np.ndarray) -> tuple((float, float)):
+    '''
+    Function to calculate instrumental noise
+
+    Parameters
+    --------
+    y_data : ndarray
+        The input raw data without any kind of smoothing
+
+    Returns
+    ---------
+    norm_noise_std : float
+        Calculated standard deviation between the y_i (raw data)
+        and the y_mean (smoothed data)
+
+    Notes
+    ---------
+    This implementation estimates the noise by calculating the standard deviation
+    using the y_mean as the smoothed signal and y_i as the raw data.
+    Firstly, data have its baseline corrected and it is normalized.
+    Then Savitzky-Golay smoothing yields `y_mean`.
+    Then, the residues are calculated by performing `y_mean - y_data`.
+    From `y_mean - y_data` mean and standard deviation are calculated using:
+    '''
+    # Calculation of y_mean
+    y_mean = baseline_arPLS(y_data)
+    y_mean = normalize(y_mean)
+    y_mean = smooth_data(y_data, window=10, polyorder=0, deriv=0)
+
+    y_noise = np.power(np.subtract(y_data, y_mean), 2) # (y_i - y_mean)^2
+    noise_var = np.sum(y_noise)/len(y_noise.flatten())
+    norm_noise_std = np.power(noise_var, 0.5)
+
+    return norm_noise_std
+
+def calculate_raw_noise(y_data : np.ndarray) -> tuple((float, float)):
     '''
     Function to calculate instrumental noise
 
@@ -323,9 +359,9 @@ def calculate_noise(y_data : np.ndarray) -> tuple((float, float)):
     y_mean = smooth_data(y_data, window=10, polyorder=0, deriv=0)
     y_noise = np.power(np.subtract(y_data, y_mean), 2) # (y_i - y_mean)^2
     noise_var = np.sum(y_noise)/len(y_noise.flatten())
-    noise_std = np.power(noise_var, 0.5)
+    raw_noise_std = np.power(noise_var, 0.5)
 
-    return noise_std
+    return raw_noise_std
 
 def peak_purity(pda_rt_scan_idx : int, start_idx : int,
                 end_idx : int, scans_chromatogram : np.ndarray,
