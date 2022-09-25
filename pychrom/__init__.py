@@ -42,8 +42,7 @@ def smooth_data(y_data: np.ndarray,
 def baseline_arPLS(y: np.ndarray,
                     ratio: float = 1e-6,
                     lam: int = 10000,
-                    niter: int = 10,
-                    full_output=False):
+                    niter: int = 10):
     '''
     Function to perform baseline correction using arPLS
 
@@ -96,7 +95,7 @@ def baseline_arPLS(y: np.ndarray,
     return d                                            # z = to be subtracted from y_data
 
 
-def normalize(y_data : np.ndarray, axis_var = None):
+def normalize(y_data : np.ndarray, axis_var = None) -> np.ndarray:
     '''
     Normalise 1D data between 0 to 1 based on max and min value
 
@@ -147,9 +146,6 @@ def peak_search(y_data: np.ndarray,
     ---------
     peak_indices: list[int]
 
-    See also
-    ---------
-
     '''
     y_data = normalize(y_data)
     peak_indices, _ = find_peaks(y_data, prominence)
@@ -165,6 +161,7 @@ def peak_search_subset(initial_idx : int,
                         subset_range : int = 50) -> int:
     '''
     Search peak within an interval and returns the index of the most intense peak
+
     Parameters
     --------
     initial_idx : int
@@ -174,6 +171,7 @@ def peak_search_subset(initial_idx : int,
     prominence : float, default = 0.1
     subset_range : int
         Window to search for the peak in terms of index
+
     Returns
     --------
     highest_peak : int
@@ -181,23 +179,31 @@ def peak_search_subset(initial_idx : int,
     '''
     # normalize data
     y_data = normalize(y_data)
+
     # range of peak lookup
     interval = subset_range
     lower_int = initial_idx - interval
     upper_int = initial_idx + interval
+
     # data trimming based on the interval
     y_trim = y_data[lower_int:upper_int]
+
     # lookup for the peaks
     peak_indices, _ = find_peaks(y_trim, prominence)
     peak_list = y_trim[peak_indices]
+
     if len(peak_indices) >= 1:
         # Search the index of the most intense peak
         highest_peak = np.where(y_trim == np.max(peak_list))
+
         # Define y-value of the highest peak
         y_peak = y_trim[highest_peak]
+
         # Return index from original dataset
         highest_peak = np.abs(y_data - y_peak).argmin()
+
         return highest_peak
+
     else:
         print('No peak found on subsearch. Returning initial index')
         return initial_idx
@@ -212,9 +218,7 @@ def peak_search_width(y_peak_idx: int,
     ---------
     y_peak_idx : int
     y_data : ndarray
-    x_data : ndarray, optional
     rel_height : float, default = 0.99
-    return_idx : bool, default = False
 
     Returns
     ---------
@@ -242,6 +246,7 @@ def peak_integrate(y_data : np.ndarray,
                     peaks_heights_idx : int,
                     int_interval : tuple((int,int))=None,
                     rel_height : int=0.99) -> float:
+
     ''' Peak integration using the composite trapezoidal rule.
 
     Parameters
@@ -269,36 +274,26 @@ def peak_integrate(y_data : np.ndarray,
 
     return integration
 
-def peak_integrate_perc(y_data, peaks_heights, start_width, end_width, return_absolute = False):
-    if(len(peaks_heights)==0):
-        print("No peaks")
-    elif(len(peaks_heights)>=1):
-        integration = np.empty(len(peaks_heights))
-        perc_int = np.empty(len(peaks_heights))
-        for i in range(0, len(peaks_heights)): #iterate over all found peaks
-            left_int = start_width[i].astype(int).item() #convert to int and then to scalar
-            right_int = end_width[i].astype(int).item() #convert to int and then to scalar
-            integration[i] = np.trapz(y_data[left_int:right_int])
-            print(integration[i])
-        for i in range(0, len(peaks_heights)):
-            perc_int[i] = np.amax(integration[i])*100/np.sum(integration) #calculates the sum of all integrations
-                                                                          # divide each peak by the sum
-    return perc_int
-
 def mean_center(y_data: np.ndarray, axis = 0) -> np.ndarray:
     '''
     Function to center data using np arrays
+
     Parameters
     ---------
+
     y_data : ndarray
+
     Returns
     --------
+
     y_centered : ndarray
+
     Notes
     --------
     '''
     # calculate the mean for each dimension (columns)
     y_centered = y_data - y_data.mean(axis=axis)
+
     return y_centered
 
 def calculate_noise(y_data : np.ndarray) -> tuple((float, float)):
@@ -308,25 +303,29 @@ def calculate_noise(y_data : np.ndarray) -> tuple((float, float)):
     Parameters
     --------
     y_data : ndarray
-        Input data
+        The input raw data without any kind of smoothing
 
     Returns
     ---------
-    mean_noise : float
-    std_dev_noise : float
+    noise_std : float
+        Calculated standard deviation between the y_i (raw data)
+        and the y_mean (smoothed data)
+
     Notes
     ---------
-    This implementation is based on the mitigation of noise using
-    Savitzky-Golay smoothing yielding `y_mean`. Then, the residues are
-    calculated by performing `y_mean - y_data`.
+    This implementation estimates the noise by calculating the standard deviation
+    using the y_mean as the smoothed signal and y_i as the raw data.
+    Savitzky-Golay smoothing yields `y_mean`.
+    Then, the residues are calculated by performing `y_mean - y_data`.
     From `y_mean - y_data` mean and standard deviation are calculated using:
-    >>> np.mean
-    >>> np.std
     '''
-    y_mean = smooth_data(y_data)
-    mean_noise = np.mean(y_data - y_mean)
-    std_dev_noise = np.std(y_data - y_mean)
-    return float(mean_noise), float(std_dev_noise)
+
+    y_mean = smooth_data(y_data, window=10, polyorder=0, deriv=0)
+    y_noise = np.power(np.subtract(y_data, y_mean), 2) # (y_i - y_mean)^2
+    noise_var = np.sum(y_noise)/len(y_noise.flatten())
+    noise_std = np.power(noise_var, 0.5)
+
+    return noise_std
 
 def peak_purity(pda_rt_scan_idx : int, start_idx : int,
                 end_idx : int, scans_chromatogram : np.ndarray,

@@ -12,7 +12,7 @@ classifiers = [
 
 setup(
     name='PyChrom',
-    version='0.0.1',
+    version='0.0.3',
     description='Module to provide tools to process and analyse chromatographic data from different sources such as UPLC, LCMS, GCMS, etc.',
     long_description=open('README.txt').read() + '\n\n' + open('CHANGELOG.txt').read(),
     url='https://github.com/rdgsnm/PyChrom',
@@ -20,7 +20,7 @@ setup(
     author_email='rdgsnm@gmail.com',
     license='MIT',
     classifiers=classifiers,
-    keywords='',
+    keywords='chromatography, chemometrics, data preprocessing',
     packages=find_packages(),
     install_requires=['numpy', 'scipy', 'sklearn']
 )

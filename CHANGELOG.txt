@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.0.3 (09/25/2022)
+------------------
+- Fixed some functions and docstrings
+- Added new function calculate_noise
+    Calculate noise allows the determination of instrumental noise based on the
+    calculation of the standard deviation considering the raw data as the input and
+    the smoothed data as the mean
+
+0.0.2 (09/11/2022)
+------------------
+- Corrected bugs and some fixes to functions (type hintings and enhanced docstrings)
+
 0.0.1 (09/11/2022)
 ------------------
 - First release
