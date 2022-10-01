@@ -321,10 +321,11 @@ def calculate_normalized_noise(y_data : np.ndarray) -> tuple((float, float)):
     Then, the residues are calculated by performing `y_mean - y_data`.
     From `y_mean - y_data` mean and standard deviation are calculated using:
     '''
-    # Calculation of y_mean
-    y_mean = baseline_arPLS(y_data)
-    y_mean = normalize(y_mean)
-    y_mean = smooth_data(y_data, window=10, polyorder=0, deriv=0)
+    # Calculation of y_norm
+    y_norm = normalize(y_data)
+
+    # Calculate y_mean
+    y_mean = smooth_data(y_norm, window=5, polyorder=0, deriv=0)
 
     y_noise = np.power(np.subtract(y_data, y_mean), 2) # (y_i - y_mean)^2
     noise_var = np.sum(y_noise)/len(y_noise.flatten())

@@ -1,5 +1,9 @@
 Changelog
 =========
+0.0.4 (09/25/2022)
+------------------
+- Corrected noise calculation
+- Two options: raw noise and normalized noise
 
 0.0.3 (09/25/2022)
 ------------------

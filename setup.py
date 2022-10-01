@@ -12,7 +12,7 @@ classifiers = [
 
 setup(
     name='PyChrom',
-    version='0.0.3',
+    version='0.0.4',
     description='Module to provide tools to process and analyse chromatographic data from different sources such as UPLC, LCMS, GCMS, etc.',
     long_description=open('README.txt').read() + '\n\n' + open('CHANGELOG.txt').read(),
     url='https://github.com/rdgsnm/PyChrom',
