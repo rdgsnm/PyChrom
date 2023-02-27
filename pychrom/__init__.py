@@ -1,6 +1,5 @@
 import warnings
 import numpy as np
-import scipy.stats as stat
 from numpy.linalg import norm
 from numpy import linalg as LA
 from sklearn import preprocessing
@@ -16,13 +15,16 @@ class PyChromIsFusedException(Exception):
     '''Exception for is_fused function'''
     pass
 
+
 class PyChromPeakSearchException(Exception):
     '''Exception for is_fused function'''
     pass
 
+
 class PyChromNormalizeException(Exception):
     '''Exception for normalize function'''
     pass
+
 
 def smooth_data(y_data: np.ndarray,
                 window: int = 5,
@@ -30,21 +32,24 @@ def smooth_data(y_data: np.ndarray,
                 deriv: int = 0,
                 axis: int = -1): #use savgol filter to smooth data
     '''
+    Summary
+    --------
     Function to smooth the data
-    
+
     Parameters
     --------
     y_data : ndarray
     window : int, default = 5
     polyorder: int, default = 0
     deriv : int, default = 0
-    
+
     Returns
     ---------
     smooth_data : ndarray
     '''
     smooth_data = savgol_filter(y_data, window, polyorder, deriv, axis=axis)
     return smooth_data
+
 
 def baseline_arPLS(y: np.ndarray,
                     ratio: float = 1e-6,
@@ -618,15 +623,15 @@ def split_fused_peaks(peak_idx: int,
         # will execute interval selection
         if peaks_list[i] < peak_idx < peaks_list[i+1]:
             # If it is between the beginning
-            int_interval = (peaks_list[i].item(), peaks_list[i+1].item())
+            int_interval = (peaks_list[i].item(), peaks_list[i+1].item()+3)
             break
 
     # Adjust the new intervals by shifting the start to the left and end to the right
-    new_s, _, _ = peak_search_width(int_interval[0], y_diff, rel_height=0.3)
-    _, new_e, _ = peak_search_width(int_interval[1], y_diff, rel_height=0.3)
+    # new_s, _, _ = peak_search_width(int_interval[0], y_diff, rel_height=0.05)
+    # _, new_e, _ = peak_search_width(int_interval[1], y_diff, rel_height=0.05)
 
-    # Define new integration interval
-    int_interval = (new_s, new_e)
+    # # Define new integration interval
+    # int_interval = (new_s, new_e)
 
     return int_interval
 
