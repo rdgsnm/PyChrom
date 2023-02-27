@@ -9,6 +9,8 @@ from scipy import sparse
 from scipy.signal import find_peaks, peak_widths, savgol_filter
 from scipy.sparse import linalg
 
+__version__ = '0.0.5'
+__author__ = 'Rodrigo Silva Nascimento Mancini'
 
 class PyChromIsFusedException(Exception):
     '''Exception for is_fused function'''

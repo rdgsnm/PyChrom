@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from pychrom import __version__, __author__
 
 classifiers = [
     'Development Status :: 3 - Alpha',
@@ -12,11 +13,11 @@ classifiers = [
 
 setup(
     name='PyChrom',
-    version='0.0.5',
+    version=__version__,
     description='Module to provide tools to process and analyse chromatographic data from different sources such as UPLC, LCMS, GCMS, etc.',
     long_description=open('README.txt').read() + '\n\n' + open('CHANGELOG.txt').read(),
     url='https://github.com/rdgsnm/PyChrom',
-    author='Rodrigo Silva Nascimento Mancini',
+    author=__author__,
     author_email='rdgsnm@gmail.com',
     license='MIT',
     classifiers=classifiers,
