@@ -6,10 +6,8 @@ from numpy.linalg import norm
 from numpy import linalg as LA
 from sklearn import preprocessing
 from scipy import sparse
-
 from scipy.signal import find_peaks, peak_widths, savgol_filter
 from scipy.sparse import linalg
-from sklearn import preprocessing
 
 
 class PyChromIsFusedException(Exception):
@@ -115,6 +113,8 @@ def baseline_arPLS(y: NDArray[Any],
 
 def normalize(y_data: NDArray[Any]) -> NDArray[Any]:
     '''
+    Summary
+    -------
     Normalize 1D data between 0 to 1 based on max and min value
 
     Parameters
@@ -132,7 +132,8 @@ def normalize(y_data: NDArray[Any]) -> NDArray[Any]:
 
     '''
     if y_data.ndim != 1:
-        raise PyChromNormalizeException(f'Wrong array dimension (Dim: {y_data.ndim}) at {normalize.__name__}.')
+        msg = f'Wrong array dimension (Dim: {y_data.ndim}) at {normalize.__name__}.'
+        raise PyChromNormalizeException(msg)
 
     # Get minimum value
     y_data_min_arr = np.min(y_data)
@@ -186,10 +187,11 @@ def peak_search(y_data: NDArray[Any],
         warnings.warn('No peak found')
         return []
 
-def peak_search_subset(initial_idx : int,
-                       y_data : NDArray[Any],
-                       height : float = 0.1,
-                       subset_range : int = 50) -> tuple((int, bool)):
+
+def peak_search_subset(initial_idx: int,
+                       y_data: NDArray[Any],
+                       height: float = 0.1,
+                       subset_range: int = 50) -> tuple((int, bool)):
     '''
     Summary
     --------
@@ -248,9 +250,11 @@ def peak_search_subset(initial_idx : int,
 
 
 def peak_search_width(y_peak_idx: int,
-                      y_data: np.ndarray,
+                      y_data: NDArray[Any],
                       rel_height: float = 0.99) -> tuple((int, int, float)):
     '''
+    Summary
+    --------
     Find peak widths taking peak indexes and y-data
 
     Parameters
@@ -269,8 +273,10 @@ def peak_search_width(y_peak_idx: int,
     # Transform into array and flatten into 1D
     y_peak_idx = np.array(y_peak_idx).flatten()
 
-    # Find widths 
-    width = peak_widths(y_data, peaks = y_peak_idx, rel_height=rel_height)
+    # Find widths
+    width = peak_widths(y_data,
+                        peaks=y_peak_idx,
+                        rel_height=rel_height)
 
     # Define intervals
     start_int = width[2].astype(int).item()
@@ -282,12 +288,15 @@ def peak_search_width(y_peak_idx: int,
     return start_int, end_int, y_at_rel_height
 
 
-def peak_integrate(y_data : np.ndarray,
-                    peaks_heights_idx : int,
-                    int_interval : tuple((int,int))=None,
-                    rel_height : int=0.99) -> float:
+def peak_integrate(y_data: NDArray[Any],
+                   peaks_heights_idx: int,
+                   int_interval: tuple((int, int)) = None,
+                   rel_height: int = 0.99) -> float:
 
-    ''' Peak integration using the composite trapezoidal rule.
+    '''
+    Summary
+    --------
+    Peak integration using the composite trapezoidal rule.
 
     Parameters
     ---------
@@ -307,7 +316,10 @@ def peak_integrate(y_data : np.ndarray,
 
     '''
     if int_interval is None:
-        left_int, right_int, _ = peak_search_width(peaks_heights_idx, y_data, rel_height, return_idx=True)
+        left_int, right_int, _ = peak_search_width(peaks_heights_idx,
+                                                   y_data,
+                                                   rel_height)
+
         integration = np.trapz(y_data[left_int:right_int])
     else:
         integration = np.trapz(y_data[int_interval[0]:int_interval[-1]])
@@ -317,6 +329,8 @@ def peak_integrate(y_data : np.ndarray,
 
 def mean_center(y_data: np.ndarray, axis=0) -> np.ndarray:
     '''
+    Summary
+    -------
     Function to center data using np arrays
 
     Parameters
@@ -399,7 +413,10 @@ def calculate_raw_noise(y_data: NDArray[Any]) -> tuple((float, float)):
     From `y_mean - y_data` mean and standard deviation are calculated using:
     '''
 
-    y_mean = smooth_data(y_data, window=5, polyorder=0, deriv=0)
+    y_mean = smooth_data(y_data,
+                         window=5,
+                         polyorder=0,
+                         deriv=0)
     y_noise = np.power(np.subtract(y_data, y_mean), 2) # (y_i - y_mean)^2
     noise_var = np.sum(y_noise)/len(y_noise.flatten())
     raw_noise_std = np.power(noise_var, 0.5)
@@ -410,7 +427,7 @@ def calculate_raw_noise(y_data: NDArray[Any]) -> tuple((float, float)):
 def peak_purity(pda_rt_scan_idx: int,
                 start_idx: int,
                 end_idx: int,
-                scans_chromatogram: np.ndarray,
+                scans_chromatogram: NDArray[Any],
                 type_norm: str = "l2",
                 similarity_thresh: int = 950) -> float:
     '''
@@ -503,7 +520,7 @@ def peak_purity(pda_rt_scan_idx: int,
     # Remove irrelevant region from scans
     scans_chromatogram_corrected = scans_chromatogram_corrected[:,20:]
     correction_matrix = correction_matrix[:,20:]
-    
+
     # Normalise data across columns (axis = 1)
     scans_chromatogram_corrected = preprocessing.normalize(scans_chromatogram_corrected,
                                                             norm=type_norm, axis = 1)
@@ -514,7 +531,7 @@ def peak_purity(pda_rt_scan_idx: int,
     '''Similarity calculations'''
     # Dot product between peak scans and apex scan
     dot_ref_spec = np.matmul(scans_chromatogram_corrected,
-                                REF_PDA_intensities)
+                             REF_PDA_intensities)
 
     # Norm product of the peak scans and apex scan
     norm_ref_spec = LA.norm(REF_PDA_intensities)*LA.norm(scans_chromatogram_corrected, axis=1)
@@ -530,9 +547,9 @@ def peak_purity(pda_rt_scan_idx: int,
 
 
 def is_fused_peak(peak_intervals: tuple((int, int)),
-                    y_data: np.ndarray,
-                    diff_smooth_window: int = 20,
-                    slice_window: int = 10) -> bool:
+                  y_data: NDArray[Any],
+                  diff_smooth_window: int = 20,
+                  slice_window: int = 10) -> bool:
     '''
     Summary
     ---------
@@ -541,7 +558,7 @@ def is_fused_peak(peak_intervals: tuple((int, int)),
     Parameters
     ---------
     peak_intervals : tuple(int, int)
-    y_data : np.ndarray
+    y_data : NDArray[Any]
 
     Returns
     ---------
@@ -550,18 +567,25 @@ def is_fused_peak(peak_intervals: tuple((int, int)),
     Raises
     ---------
     PyChromIsFusedException
-        If only peak is found. A strong indication of the absence of gaussian/lorentzian peak shape
-    
+        If only peak is found. A strong indication of the absence of
+        gaussian/lorentzian peak shape
+
     Notes
     ---------
-    The implementation is based on the mathematical property of gaussian-shaped peaks. The second derivative
-    is performed upon the y-data. When it is a perfect gaussian peak, there are two peaks and one valley. The
-    two peaks represent the X-position of 25% of the total height, and the valley is the X position of the
+    The implementation is based on the mathematical property
+    of gaussian-shaped peaks. The second derivative
+    is performed upon the y-data. When it is a perfect gaussian peak,
+    there are two peaks and one valley.
+    The two peaks represent the X-position of 25% of the total height,
+    and the valley is the X position of the
     100% of the height.
-    In V1.00, some problems are rising from the way that the algorithm detects the multi peak. Some situations are resulting
+    In V1.00, some problems are rising from the way
+    that the algorithm detects the multi peak.
+    Some situations are resulting
     in only one peak and others, 5 peaks.
-    For one peak situations, the problem was in the y_diff slice using the peak intervals. To solve it,
-    increasing the the interval window was enough.
+    For one peak situations, the problem was
+    in the y_diff slice using the peak intervals.
+    To solve it, increasing the the interval window was enough.
 
     References
     ---------
@@ -576,21 +600,23 @@ def is_fused_peak(peak_intervals: tuple((int, int)),
 
     # Smooth the data to remove noise
     y_diff = smooth_data(y_data=y_diff,
-                            window=diff_smooth_window,
-                            polyorder=0,
-                            deriv=0,
-                            axis=-1)
+                         window=diff_smooth_window,
+                         polyorder=0,
+                         deriv=0,
+                         axis=-1)
 
     # Slice the array within the interval provided, but a bit broader (+- 10)
     y_diff = y_diff[(peak_intervals[0]-slice_window):(peak_intervals[1]+slice_window)]
 
     # Fetch both peaks. Prominence must be > 0.5 since the baseline shifts to 0.5 after normalisation
-    peaks_idx = peak_search(y_diff, height=[0.05*np.max(y_diff), 1.5*np.max(y_diff)], norm=False)
+    peaks_idx = peak_search(y_diff,
+                            height=[0.05*np.max(y_diff), 1.5*np.max(y_diff)],
+                            norm=False)
 
     is_fused = False
-    if len(peaks_idx)==2:
+    if len(peaks_idx) == 2:
         is_fused = False
-    elif len(peaks_idx)>=3:
+    elif len(peaks_idx) >= 3:
         is_fused = True
     else:
         error_msg = f'Unhandled condition at the is_fused_peaks. Number of peaks found: {len(peaks_idx)}'
@@ -598,12 +624,16 @@ def is_fused_peak(peak_intervals: tuple((int, int)),
 
     return is_fused
 
+
 def split_fused_peaks(peak_idx: int,
-                        peak_intervals: tuple((int, int)),
-                        y_data: np.ndarray,
-                        diff_smooth_window: int = 20,
-                        slice_window: int = 10) -> tuple((int, int)):
-    '''Function to return the interval related to the peak of interest within the interval provided.
+                      peak_intervals: tuple((int, int)),
+                      y_data: NDArray[Any],
+                      diff_smooth_window: int = 20,
+                      slice_window: int = 10) -> tuple((int, int)):
+    '''
+    Summary
+    --------
+    Function to return the interval related to the peak of interest within the interval provided.
 
     Parameters
     ---------
@@ -628,7 +658,7 @@ def split_fused_peaks(peak_idx: int,
     References
     ---------
     '''
-    
+
     # Normalize y_data
     y_diff = normalize(y_data)
 
@@ -637,10 +667,10 @@ def split_fused_peaks(peak_idx: int,
 
     # Smooth the data to remove noise
     y_diff = smooth_data(y_data=y_diff,
-                            window=diff_smooth_window,
-                            polyorder=0,
-                            deriv=0,
-                            axis=-1)
+                         window=diff_smooth_window,
+                         polyorder=0,
+                         deriv=0,
+                         axis=-1)
 
     # Slice the array within the interval provided, but a bit broader (+- 10)
     y_diff_sliced = y_diff[(peak_intervals[0]-slice_window):(peak_intervals[1]+slice_window)]
@@ -660,13 +690,4 @@ def split_fused_peaks(peak_idx: int,
             int_interval = (peaks_list[i].item(), peaks_list[i+1].item()+3)
             break
 
-    # Adjust the new intervals by shifting the start to the left and end to the right
-    # new_s, _, _ = peak_search_width(int_interval[0], y_diff, rel_height=0.05)
-    # _, new_e, _ = peak_search_width(int_interval[1], y_diff, rel_height=0.05)
-
-    # # Define new integration interval
-    # int_interval = (new_s, new_e)
-
     return int_interval
-
-
