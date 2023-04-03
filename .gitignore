@@ -2,5 +2,5 @@ dist/
 tests/
 PyChrom.egg-info/
 test_functions.py
-pychrom/__pycache__/
+__pycache__/
 CAF-ISOMER1_11542.arw
