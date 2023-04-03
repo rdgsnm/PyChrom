@@ -1,5 +1,17 @@
 Changelog
 =========
+
+0.0.6 (04/03/2023)
+------------------
+- Resolved imports outside __init__ file
+- Further changes to type hints
+
+0.0.5 (02/27/2023)
+------------------
+- Minor fixes
+- Black formatting
+- Mypy checks
+
 0.0.4 (09/25/2022)
 ------------------
 - Corrected noise calculation
